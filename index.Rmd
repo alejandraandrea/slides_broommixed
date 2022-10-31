@@ -1,0 +1,221 @@
+---
+title: "Cómo aplicar métodos tidying a modelos mixtos con un set de datos sobre arañas usando el paquete {broom.mixed}"
+#subtitle: ""
+author: "Alejandra Tapia"
+institute: "R-Ladies Talca/R-Ladies Chile"
+date: "31/10/2022"
+output:
+  xaringan::moon_reader:
+    chakra: libs/remark-latest.min.js 
+    css: ["default","rladies","lucy-fonts","custom.css"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+class: left, middle
+## Antes de empezar 
+
+ `>` Este taller es un punto de partida para el uso de métodos tidying para modelos mixtos usando el paquete {broom.mixed}
+ 
+ `>` Se verán los principales métodos tidying 
+ 
+ `>` Estos métodos se aplicarán a un modelo logístico mixto
+
+ `>` No se utilizan fórmulas matemáticas, como un intento de hacerlo amigable e intuitivo
+
+ `>` Trabajaremos con un set de datos sobre los arácnidos "Opiliones"
+
+ `>` Si surgen dudas, no te preocupes, es normal
+
+ `>` El código y la presentación quedarán disponibles
+
+ `>` Habrá espacio para preguntas
+
+---
+class: center, middle
+## ¿{tidymodels}?
+
+.center[<img src=imgs/hex_tidymodels.png width="15%">]
+
+{tidymodels} es una colección de paquetes para modelado y aprendizaje automático/machine learning utilizando los principios de tidyverse en el ecosistema R
+
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+.center[<img src=imgs/hex_broom.png width="15%">]
+
+{broom} toma la salida desordenada de las funciones integradas en R, como lm, t.test, nls, etc., y las convierte en tibbles ordenados
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+Recordemos que el concepto de "tidy data" o datos ordenados, tal como lo introdujo Hadley Wickham, ofrece un marco poderoso para la manipulación y el análisis de datos en Ciencia de Datos
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+Si bien las entradas de un modelo generalmente requieren entradas ordenadas, esa atención a los detalles no se traslada a las salidas del modelo. Los resultados, como las predicciones y los coeficientes estimados, no siempre están ordenados. Esto hace que sea más difícil combinar los resultados de múltiples modelos. Por ejemplo, en R, la representación predeterminada de los coeficientes del modelo no está ordenada porque no tiene una variable explícita que registre el nombre de la variable para cada estimación, sino que se registran como nombres de fila. En R, los nombres de las filas deben ser únicos, por lo que la combinación de coeficientes de muchos modelos (por ejemplo, de subgrupos o bootstrap resamples) requiere soluciones alternativas para evitar perder información importante. Esto lo saca del flujo de análisis y dificulta la combinación de los resultados de múltiples modelos. 
+
+https://cran.r-project.org/web/packages/broom/vignettes/broom.html
+
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+{broom} es un intento de cerrar la brecha entre los resultados desordenados de predicciones y estimaciones y los datos ordenados con los que queremos trabajar. Se centra en tres métodos S3, cada uno de los cuales toma objetos comunes producidos por funciones estadísticas R (lm, t.test, nls, etc.) y los convierte en un tibble 
+
+{broom} está especialmente diseñado para funcionar con {dplyr} de Hadley https://cran.r-project.org/web/packages/broom/vignettes/broom_and_dplyr.html
+
+---
+class: center, middle
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+{broom.mixed} es un spinoff de {broom} para trabajar con modelos mixtos en R (lmer, glmer, gamlss, etc.)
+
+
+---
+class: center, middle
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+{broom.mixed} proporciona tres métodos traducidos en las funciones tidy(), augment() y  glance(), para tantos paquetes y tipos de modelos en el ecosistema R como sea posible
+
+
+---
+class: center, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+Estos métodos se han separado de {broom} porque hay problemas que deben abordarse para estos modelos (por ejemplo, diferentes tipos de parámetros: fijos, parámetros de efectos aleatorios, modos condicionales/BLUP de efectos aleatorios, etc.) que no son especialmente relevantes para el universo más amplio de modelos con los que trata {broom}
+
+
+---
+class: Left, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+#### `>` tidy(): Construye un tibble que ordena los hallazgos estadísticos del modelo como estimaciones, errores estándar, intervalos de confianza, etc.
+
+
+---
+class: Left, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+#### `>` augment(): Agrega columnas a los datos originales con informaciones relacionadas a residuos, valores ajustados, medidas de influencia, etc.
+
+---
+class: Left, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+#### `>` glance(): Construye un resumen con otras informaciones relacionadas al ajuste del modelo como logLik, AIC, BIC, deviance, etc.
+
+
+---
+class: center, middle
+
+##`> Opiliones: Un arácnido tan temido como inofensivo... no pica ni es venenoso... pero se vuelve peleador para la reproducción`
+
+
+
+.center[<img src=imgs/Magnispina_by_Glauco.png width="40%">]
+
+
+---
+class: center, middle
+
+##`> Opiliones: Comportamiento reproductivo`
+
+Tapia, A., Leiva, V., Galea, M., Werneck, R. (2020). On a logistic regression model with random intercept: Diagnostic analytics, simulation and biological application. Journal of Statistical Computation and Simulation, 90:2354–2383.
+
+---
+class: center, middle
+
+##`> Opiliones: Comportamiento reproductivo`
+
+El éxito de un macho se mide primero por la ocupación de un nido en un determinado terrario (`efecto aleatorio`) y luego por la presencia o ausencia de huevos (`variable respuesta binaria`) en el nido de dicho macho. Por lo tanto, un macho que posee un nido puede proteger una nidada de huevos.
+
+Se espera que la competencia por los nidos sea mayor en LaN que en HaN (`efecto fijo`), y a medida que aumenta la competencia, el tamaño del macho (`efecto fijo`) tendría más influencia en LaN que en HaN
+
+---
+class: center, middle
+
+##`> Opiliones: Comportamiento reproductivo`
+
+.center[<img src=imgs/low.png width="80%">]
+
+---
+class: center, middle
+
+##`> Opiliones: Comportamiento reproductivo`
+
+.center[<img src=imgs/high.png width="80%">]
+
+---
+class: center, middle
+
+##`> Vamos a R/RStudio...`
+
+
+---
+class: left
+
+##`Referencias` 
+
+### > Ben Bolker y + 
+
+https://cran.r-project.org/web/packages/broom.mixed/index.html
+
+https://github.com/bbolker
+
+
+### > Douglas Bates 
+https://github.com/dmbates
+
+---
+class: left
+
+##`Referencias`
+
+### > Max Kuhn, Hadley Wickham and RStudio
+
+https://www.tidymodels.org/
+
+### > Max Kuhn and Julia Silge 
+
+https://www.tmwr.org/
+
+### > David Robinson y +
+
+https://github.com/tidymodels/broom
+
+
+
+---
+class: center, middle
+
+##`¡Comienza a usar {broom.mixed} y {lme4} con tus propios datos!`
+
+
+
+---
+class: center, middle
+
+
+.center[<img src=imgs/R-Ladies_Talca_hex.png width="30%">]
+
+
+##### Presentación creada con el paquete [**xaringan**](https://github.com/yihui/xaringan) de [**Yihui Xie**](https://github.com/yihui) y el tema [**rladies**](https://github.com/rbind/apreshill/blob/master/static/slides/rladies-demo-slides.Rmd) de [**Alison Hill**](https://github.com/apreshill) 
+
+<img src="imgs/logo_twitter.png" alt="Sharingan" width="6%" align="center"/>
+`@aleants @RLadiesTalca` 
+
+`https://rladieschile.org/ https://github.com/rladieschile` 

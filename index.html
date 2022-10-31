@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Cómo aplicar métodos tidying a modelos mixtos con un set de datos sobre arañas usando el paquete {broom.mixed}</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Alejandra Tapia" />
+    <script src="libs/header-attrs-2.14/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/rladies.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/lucy-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Cómo aplicar métodos tidying a modelos mixtos con un set de datos sobre arañas usando el paquete {broom.mixed}
+]
+.author[
+### Alejandra Tapia
+]
+.institute[
+### R-Ladies Talca/R-Ladies Chile
+]
+.date[
+### 31/10/2022
+]
+
+---
+
+
+class: left, middle
+## Antes de empezar 
+
+ `&gt;` Este taller es un punto de partida para el uso de métodos tidying para modelos mixtos usando el paquete {broom.mixed}
+ 
+ `&gt;` Se verán los principales métodos tidying 
+ 
+ `&gt;` Estos métodos se aplicarán a un modelo logístico mixto
+
+ `&gt;` No se utilizan fórmulas matemáticas, como un intento de hacerlo amigable e intuitivo
+
+ `&gt;` Trabajaremos con un set de datos sobre los arácnidos "Opiliones"
+
+ `&gt;` Si surgen dudas, no te preocupes, es normal
+
+ `&gt;` El código y la presentación quedarán disponibles
+
+ `&gt;` Habrá espacio para preguntas
+
+---
+class: center, middle
+## ¿{tidymodels}?
+
+.center[&lt;img src=imgs/hex_tidymodels.png width="15%"&gt;]
+
+{tidymodels} es una colección de paquetes para modelado y aprendizaje automático/machine learning utilizando los principios de tidyverse en el ecosistema R
+
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+.center[&lt;img src=imgs/hex_broom.png width="15%"&gt;]
+
+{broom} toma la salida desordenada de las funciones integradas en R, como lm, t.test, nls, etc., y las convierte en tibbles ordenados
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+Recordemos que el concepto de "tidy data" o datos ordenados, tal como lo introdujo Hadley Wickham, ofrece un marco poderoso para la manipulación y el análisis de datos en Ciencia de Datos
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+Si bien las entradas de un modelo generalmente requieren entradas ordenadas, esa atención a los detalles no se traslada a las salidas del modelo. Los resultados, como las predicciones y los coeficientes estimados, no siempre están ordenados. Esto hace que sea más difícil combinar los resultados de múltiples modelos. Por ejemplo, en R, la representación predeterminada de los coeficientes del modelo no está ordenada porque no tiene una variable explícita que registre el nombre de la variable para cada estimación, sino que se registran como nombres de fila. En R, los nombres de las filas deben ser únicos, por lo que la combinación de coeficientes de muchos modelos (por ejemplo, de subgrupos o bootstrap resamples) requiere soluciones alternativas para evitar perder información importante. Esto lo saca del flujo de análisis y dificulta la combinación de los resultados de múltiples modelos. 
+
+https://cran.r-project.org/web/packages/broom/vignettes/broom.html
+
+
+---
+class: center, middle
+## ¿{broom}? Vamos a ordenar un poco...
+
+{broom} es un intento de cerrar la brecha entre los resultados desordenados de predicciones y estimaciones y los datos ordenados con los que queremos trabajar. Se centra en tres métodos S3, cada uno de los cuales toma objetos comunes producidos por funciones estadísticas R (lm, t.test, nls, etc.) y los convierte en un tibble 
+
+{broom} está especialmente diseñado para funcionar con {dplyr} de Hadley https://cran.r-project.org/web/packages/broom/vignettes/broom_and_dplyr.html
+
+---
+class: center, middle
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+{broom.mixed} es un spinoff de {broom} para trabajar con modelos mixtos en R (lmer, glmer, gamlss, etc.)
+
+
+---
+class: center, middle
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+{broom.mixed} proporciona tres métodos traducidos en las funciones tidy(), augment() y  glance(), para tantos paquetes y tipos de modelos en el ecosistema R como sea posible
+
+
+---
+class: center, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+Estos métodos se han separado de {broom} porque hay problemas que deben abordarse para estos modelos (por ejemplo, diferentes tipos de parámetros: fijos, parámetros de efectos aleatorios, modos condicionales/BLUP de efectos aleatorios, etc.) que no son especialmente relevantes para el universo más amplio de modelos con los que trata {broom}
+
+
+---
+class: Left, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+#### `&gt;` tidy(): Construye un tibble que ordena los hallazgos estadísticos del modelo como estimaciones, errores estándar, intervalos de confianza, etc.
+
+
+---
+class: Left, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+#### `&gt;` augment(): Agrega columnas a los datos originales con informaciones relacionadas a residuos, valores ajustados, medidas de influencia, etc.
+
+---
+class: Left, middle
+
+## ¿{broom.mixed}? Vamos a ordenar un poco...
+
+#### `&gt;` glance(): Construye un resumen con otras informaciones relacionadas al ajuste del modelo como logLik, AIC, BIC, deviance, etc.
+
+
+---
+class: center, middle
+
+##`&gt; Opiliones: Un arácnido tan temido como inofensivo... no pica ni es venenoso... pero se vuelve peleador para la reproducción`
+
+
+
+.center[&lt;img src=imgs/Magnispina_by_Glauco.png width="40%"&gt;]
+
+
+---
+class: center, middle
+
+##`&gt; Opiliones: Comportamiento reproductivo`
+
+Tapia, A., Leiva, V., Galea, M., Werneck, R. (2020). On a logistic regression model with random intercept: Diagnostic analytics, simulation and biological application. Journal of Statistical Computation and Simulation, 90:2354–2383.
+
+---
+class: center, middle
+
+##`&gt; Opiliones: Comportamiento reproductivo`
+
+El éxito de un macho se mide primero por la ocupación de un nido en un determinado terrario (`efecto aleatorio`) y luego por la presencia o ausencia de huevos (`variable respuesta binaria`) en el nido de dicho macho. Por lo tanto, un macho que posee un nido puede proteger una nidada de huevos.
+
+Se espera que la competencia por los nidos sea mayor en LaN que en HaN (`efecto fijo`), y a medida que aumenta la competencia, el tamaño del macho (`efecto fijo`) tendría más influencia en LaN que en HaN
+
+---
+class: center, middle
+
+##`&gt; Opiliones: Comportamiento reproductivo`
+
+.center[&lt;img src=imgs/low.png width="80%"&gt;]
+
+---
+class: center, middle
+
+##`&gt; Opiliones: Comportamiento reproductivo`
+
+.center[&lt;img src=imgs/high.png width="80%"&gt;]
+
+---
+class: center, middle
+
+##`&gt; Vamos a R/RStudio...`
+
+
+---
+class: left
+
+##`Referencias` 
+
+### &gt; Ben Bolker y + 
+
+https://cran.r-project.org/web/packages/broom.mixed/index.html
+
+https://github.com/bbolker
+
+
+### &gt; Douglas Bates 
+https://github.com/dmbates
+
+---
+class: left
+
+##`Referencias`
+
+### &gt; Max Kuhn, Hadley Wickham and RStudio
+
+https://www.tidymodels.org/
+
+### &gt; Max Kuhn and Julia Silge 
+
+https://www.tmwr.org/
+
+### &gt; David Robinson y +
+
+https://github.com/tidymodels/broom
+
+
+
+---
+class: center, middle
+
+##`¡Comienza a usar {broom.mixed} y {lme4} con tus propios datos!`
+
+
+
+---
+class: center, middle
+
+
+.center[&lt;img src=imgs/R-Ladies_Talca_hex.png width="30%"&gt;]
+
+
+##### Presentación creada con el paquete [**xaringan**](https://github.com/yihui/xaringan) de [**Yihui Xie**](https://github.com/yihui) y el tema [**rladies**](https://github.com/rbind/apreshill/blob/master/static/slides/rladies-demo-slides.Rmd) de [**Alison Hill**](https://github.com/apreshill) 
+
+&lt;img src="imgs/logo_twitter.png" alt="Sharingan" width="6%" align="center"/&gt;
+`@aleants @RLadiesTalca` 
+
+`https://rladieschile.org/ https://github.com/rladieschile` 
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="libs/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
