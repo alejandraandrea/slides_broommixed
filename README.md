@@ -1,5 +1,4 @@
-# slides_broommixed
-Cómo aplicar métodos tidying a modelos mixtos con un set de datos sobre arañas usando el paquete {broom.mixed} 
+#Cómo aplicar métodos tidying a modelos mixtos con un set de datos sobre arañas usando el paquete {broom.mixed} 
 
 <!-- badges: start -->
 <!-- badges: end -->
